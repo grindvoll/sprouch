@@ -1,3 +1,5 @@
+addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.3.0")
+
 // Comment to get more information during initialization
 logLevel := Level.Warn
 

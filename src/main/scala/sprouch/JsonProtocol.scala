@@ -1,8 +1,11 @@
 package sprouch
 
-import spray.can.client.HttpClient
-import spray.client.HttpConduit
-import HttpConduit._
+//import spray.can.client.HttpClient
+//import spray.client.HttpConduit
+//import HttpConduit._
+import spray.client.pipelining._
+import scala.language.implicitConversions
+
 import spray.http._
 import HttpMethods._
 import spray.httpx.encoding.{Gzip, Deflate}

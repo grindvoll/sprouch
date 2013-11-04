@@ -6,7 +6,11 @@ import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import sprouch.dsl._
-import akka.dispatch.Future
+import scala.concurrent.Future
+
+//TODO : Define other method to introduce global execution context!!!!!
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 
 class DslBulk extends FunSuite with CouchSuiteHelpers {
   

@@ -1,10 +1,13 @@
 package sprouch
 
 import akka.actor._
-import akka.dispatch.Future
-import spray.can.client.HttpClient
-import spray.client.HttpConduit
-import HttpConduit._
+import scala.concurrent.Future
+
+//import spray.can.client.HttpClient
+//import spray.client.HttpConduit
+
+import spray.client.pipelining._ // Instead of HttpConduit
+// import HttpConduit._
 import spray.http._
 import HttpMethods._
 import spray.httpx.encoding.{Gzip, Deflate}
@@ -12,12 +15,18 @@ import spray.httpx.SprayJsonSupport._
 import spray.httpx.unmarshalling.Unmarshaller
 import spray.io._
 import spray.json._
+
 import spray.util._
 import java.util.UUID
 import akka.event.Logging
 import java.net.URLEncoder.{encode => urlEncode}
 
 import JsonProtocol._
+
+//TODO : Define other method to introduce global execution context!!!!!
+import scala.concurrent._
+import ExecutionContext.Implicits.global
+
 
 private[sprouch] trait UriBuilder {
   protected[this] def sep = "/"

@@ -2,10 +2,14 @@ package sprouch
 
 import org.scalatest.FunSuite
 import akka.actor.ActorSystem
-import akka.util.Duration
-import akka.dispatch.Await
-import akka.dispatch.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.Await
+import scala.concurrent.Future
 import java.util.UUID
+
+//TODO : Define other method to introduce global execution context!!!!!
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 
 case class Test(foo:Int, bar:String)
 
@@ -17,8 +21,8 @@ trait CouchSuiteHelpers {
   implicit val testFormat = jsonFormat2(Test)
   
   implicit val actorSystem = ActorSystem("MySystem")
-  val c = new Couch(Config(actorSystem, "localhost", 5984, None, false))
-  val cSync = sprouch.synchronous.Couch(Config(actorSystem, "localhost", 5984, None, false))
+  val c = new Couch(Config(actorSystem, "localhost", 5984, Option("admin", "password"), false))
+  val cSync = sprouch.synchronous.Couch(Config(actorSystem, "localhost", 5984, Option("admin", "password"), false))
   implicit val testDuration = Duration("30 seconds")
   def await[A](f:Future[A]) = Await.result(f, testDuration)
   

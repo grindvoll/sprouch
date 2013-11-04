@@ -7,6 +7,10 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import sprouch.dsl._
 
+//TODO : Define other method to introduce global execution context!!!!!
+import scala.concurrent._
+import ExecutionContext.Implicits.global
+
 @RunWith(classOf[JUnitRunner])
 class Dsl extends FunSuite with CouchSuiteHelpers {
   import JsonProtocol._

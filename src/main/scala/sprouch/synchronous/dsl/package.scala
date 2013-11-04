@@ -2,6 +2,7 @@ package sprouch.synchronous
 
 import spray.json.RootJsonFormat
 import sprouch.RevedDocument
+import scala.language.implicitConversions
 
 package object dsl {
   implicit def dataToDslDoc[A:RootJsonFormat](data:A):DslNewDocument[A] = {

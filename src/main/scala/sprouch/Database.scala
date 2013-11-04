@@ -5,10 +5,16 @@ import spray.httpx.marshalling.Marshaller
 import spray.httpx.unmarshalling.Unmarshaller
 import akka.actor.ActorRef
 import spray.http.HttpMethods.HEAD
-import spray.client.HttpConduit
-import HttpConduit.{Post, Delete, Get, Put}
+import scala.language.postfixOps
+import spray.client.pipelining._
+
+// import spray.client.HttpConduit
+// import HttpConduit.{Post, Delete, Get, Put}
+
+import spray.http._
+
 import spray.httpx.SprayJsonSupport._
-import akka.dispatch.Future
+import scala.concurrent.Future
 import spray.json.RootJsonFormat
 import spray.httpx.RequestBuilding.RequestBuilder
 import spray.http.HttpRequest
@@ -18,6 +24,12 @@ import StaleOption._
 import ViewQueryFlag._
 import scala.annotation.implicitNotFound
 import spray.json.JsValue
+
+//TODO : Define other method to introduce global execution context!!!!!
+import scala.concurrent._
+import ExecutionContext.Implicits.global
+
+
 
 /**
   * Supports CRUD operations on documents and attachments,

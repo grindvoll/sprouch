@@ -2,6 +2,7 @@ package sprouch
 
 import JsonProtocol._
 import java.util.UUID
+import scala.language.postfixOps
 
 /**
  * This trait represents documents in CouchDB. Each document has an ID and data.

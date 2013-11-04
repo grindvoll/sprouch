@@ -2,8 +2,13 @@ package sprouch.dsl
 
 import sprouch._
 import java.util.UUID
-import akka.dispatch.Future
+import scala.concurrent.Future
 import spray.json.RootJsonFormat
+
+//TODO : Define other method to introduce global execution context!!!!!
+import scala.concurrent._
+import ExecutionContext.Implicits.global
+
 
 trait DslDocument[A] {
   

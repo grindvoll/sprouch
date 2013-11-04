@@ -7,6 +7,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import sprouch.synchronous.dsl._
 
+
 @RunWith(classOf[JUnitRunner])
 class SynchronousDsl extends FunSuite with CouchSuiteHelpers {
   import JsonProtocol._
