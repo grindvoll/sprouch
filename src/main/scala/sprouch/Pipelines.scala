@@ -121,12 +121,11 @@ private[sprouch] class Pipelines(config:Config) {
 	
 	hr => {
 	  // Ask for connector info
-	  val res = future.flatMap[A] { f => 
+	  future.flatMap[A] { f => 
 	    // Store the host connector in httpActor 
 	    httpActor = Option(f.hostConnector)
 	    pipelineInternal(etag, f.hostConnector).apply(hr)
 	  }
-	  res
 	}
   }
   
