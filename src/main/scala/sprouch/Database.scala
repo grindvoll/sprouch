@@ -7,12 +7,7 @@ import akka.actor.ActorRef
 import spray.http.HttpMethods.HEAD
 import scala.language.postfixOps
 import spray.client.pipelining._
-
-// import spray.client.HttpConduit
-// import HttpConduit.{Post, Delete, Get, Put}
-
 import spray.http._
-
 import spray.httpx.SprayJsonSupport._
 import scala.concurrent.Future
 import spray.json.RootJsonFormat
@@ -25,11 +20,6 @@ import ViewQueryFlag._
 import scala.annotation.implicitNotFound
 import spray.json.JsValue
 
-//TODO : Define other method to introduce global execution context!!!!!
-import scala.concurrent._
-import ExecutionContext.Implicits.global
-
-
 
 /**
   * Supports CRUD operations on documents and attachments,
@@ -37,6 +27,7 @@ import ExecutionContext.Implicits.global
   */
 class Database private[sprouch](val name:String, pipelines:Pipelines) extends UriBuilder {
   import pipelines._
+  import pipelines.system.dispatcher  // Make execution context visible
   
   private def dbUri:String = dbUri(name)
   private def docUri(doc:Document[_]):String = docUri(doc.id)

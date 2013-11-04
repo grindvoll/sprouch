@@ -19,10 +19,12 @@ import sprouch.JsonProtocol.ErrorResponseBody
 import sprouch.JsonProtocol.ErrorResponse
 import akka.io.IO
 import akka.pattern.ask
+import akka.util.Timeout
 import spray.can.Http
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
+
 
 /**
  * Configuration data, default values should be valid for a default install of CouchDB.
@@ -38,42 +40,24 @@ case class Config(
     hostName:String = "localhost",
     port:Int = 5984,
     userPass:Option[(String,String)] = Option(("admin", "password")),
-    https:Boolean = false
+    https:Boolean = false,
+    timeout:Timeout = (10 seconds)
 )
 
 private[sprouch] class Pipelines(config:Config) {
   import config._
   
   private val hostConnectorSetup = new Http.HostConnectorSetup(hostName, port) 
-
-  // TODO: Don't hard code the timeout; make it a member of config class
-  implicit val timeout:akka.util.Timeout = new akka.util.Timeout(10000)  
   
   // Use actor system's dispatcher for Futures
   import actorSystem.dispatcher
   
-  implicit val system = actorSystem
+  implicit val system = actorSystem  // From config object
+  implicit val to = timeout          // From config object
   
-  private val httpTransport = {
-    
-    // TODO: Replace this with correct TCP handling in akka.io 
-    
-    /*
-    val ioBridge = IOExtension(actorSystem).ioBridge()
-    val httpClient = actorSystem.actorOf(Props(new HttpClient(ioBridge)))
-    actorSystem.actorOf(Props(new HttpConduit(httpClient, hostName, port, https)))
-    */
-
-    // Fetch reference to actor managing a host...
-    println("Sending connector setup message...")
-    val future = (IO(Http) ? hostConnectorSetup).mapTo[Http.HostConnectorInfo]
-    println("Waiting for result....")
-    val res = Await.result(future, 10 seconds)
-    println("Got actor reference!!!!")
-    res.hostConnector
-  }
+  private var httpActor:Option[ActorRef] = None
   
-  private val log = Logging(actorSystem, httpTransport)
+  private lazy val log = Logging(actorSystem, httpActor.get)
   
   private val logRequest: HttpRequest => HttpRequest = r => {
     log.info(r.toString + "\n")
@@ -83,11 +67,18 @@ private[sprouch] class Pipelines(config:Config) {
   private val logResponse: HttpResponse => HttpResponse = r => {
     log.info(r.toString + "\n")
     r
-  }  
+  }
+
+  /**
+   * Creates new pipeline without options
+   */
   def pipeline[A:FromResponseUnmarshaller]: HttpRequest => Future[A] = pipeline[A](None)
   
-  def pipeline[A:FromResponseUnmarshaller](etag:Option[String]): HttpRequest => Future[A] = {
-    
+  /**
+   * Create pipeline with options
+   */
+  private def pipelineInternal[A:FromResponseUnmarshaller](etag:Option[String], httpTransport:ActorRef): HttpRequest => Future[A] = {
+
     def unmarshalEither[A:FromResponseUnmarshaller]: HttpResponse => A = {
       hr => (hr match {
         case HttpResponse(status, _, _, _) if status.intValue == 304 => {//not modified
@@ -110,13 +101,41 @@ private[sprouch] class Pipelines(config:Config) {
       case None => (x:HttpRequest) => x
     }) ~>
     (userPass match {
-      case Some((u,p)) => { println(s"Adding credentials>>>>>>>>> ${u}:${p}");  addCredentials(BasicHttpCredentials(u, p)) }
+      case Some((u,p)) => addCredentials(BasicHttpCredentials(u, p))
       case None => (x:HttpRequest) => x
     }) ~>
 //  logRequest ~>
-    sendReceive(httpTransport) ~>
+    sendReceive( httpTransport ) ~>
 //  logResponse ~>
     unmarshalEither[A]
+  }
+  
+  // Actor ref is not ready; create a future and return that
+  private def pipelineInternalWait[A:FromResponseUnmarshaller](etag:Option[String]): HttpRequest => Future[A] = {
+    
+	// Return function that wraps it in a future. We create a new future and chain that to the other one.
+	// Fetch reference to actor that manages communication towards a specific host
+
+    // Kick off future immediately. We will wait for an answer to the fonnctor info.
+	val future = (IO(Http) ? hostConnectorSetup).mapTo[Http.HostConnectorInfo]
+	
+	hr => {
+	  // Ask for connector info
+	  val res = future.flatMap[A] { f => 
+	    // Store the host connector in httpActor 
+	    httpActor = Option(f.hostConnector)
+	    pipelineInternal(etag, f.hostConnector).apply(hr)
+	  }
+	  res
+	}
+  }
+  
+  // Return pipeline. If the HTTP actor is not found, we need to contact it first. 
+  def pipeline[A:FromResponseUnmarshaller](etag:Option[String]): HttpRequest => Future[A] = {
+    httpActor match {
+      case Some(actor) => pipelineInternal[A](etag, actor) 
+      case _ => pipelineInternalWait[A](etag)
+    }
   }
   
 }

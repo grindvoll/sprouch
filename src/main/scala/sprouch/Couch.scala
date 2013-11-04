@@ -2,12 +2,7 @@ package sprouch
 
 import akka.actor._
 import scala.concurrent.Future
-
-//import spray.can.client.HttpClient
-//import spray.client.HttpConduit
-
-import spray.client.pipelining._ // Instead of HttpConduit
-// import HttpConduit._
+import spray.client.pipelining._
 import spray.http._
 import HttpMethods._
 import spray.httpx.encoding.{Gzip, Deflate}
@@ -22,10 +17,6 @@ import akka.event.Logging
 import java.net.URLEncoder.{encode => urlEncode}
 
 import JsonProtocol._
-
-//TODO : Define other method to introduce global execution context!!!!!
-import scala.concurrent._
-import ExecutionContext.Implicits.global
 
 
 private[sprouch] trait UriBuilder {
@@ -44,6 +35,9 @@ case class SprouchException(error:ErrorResponse) extends Exception
  * Class that handles the connection to CouchDB. It contains methods for creating, looking up and deleting databases.
  */
 class Couch(config:Config) extends UriBuilder {
+  
+  // Make execution context visible
+  import config.actorSystem.dispatcher
   
   private val pipelines = new Pipelines(config)
   private lazy val pipeline = pipelines.pipeline[OkResponse]

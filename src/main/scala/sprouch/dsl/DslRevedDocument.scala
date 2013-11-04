@@ -7,12 +7,10 @@ import sprouch.JsonProtocol.OkResponse
 import sprouch.JsonProtocol.AllDocsResponse
 import spray.json.JsonFormat
 
-//TODO : Define other method to introduce global execution context!!!!!
-import scala.concurrent._
-import ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 
-class DslRevedDocument[A](id:String, rev:String, data:A, attachments:Map[String, AttachmentStub]) 
+class DslRevedDocument[A](id:String, rev:String, data:A, attachments:Map[String, AttachmentStub])(implicit val ec:ExecutionContext)
   extends RevedDocument[A](id, rev, data, attachments) {
 
   def :=[B](data:B)(implicit db:Future[Database], rjf:RootJsonFormat[B]):Future[RevedDocument[B]] = {
@@ -29,7 +27,7 @@ class DslRevedDocument[A](id:String, rev:String, data:A, attachments:Map[String,
     db.flatMap(_.deleteAttachment(this, id))
 }
 
-class DslRevedDocSeq[A:RootJsonFormat](data:Seq[RevedDocument[A]]) {
+class DslRevedDocSeq[A:RootJsonFormat](data:Seq[RevedDocument[A]])(implicit val ec:ExecutionContext) {
   def update(implicit db:Future[Database]):Future[Seq[RevedDocument[A]]] = {
     db.flatMap(_.bulkPut(data))
   }

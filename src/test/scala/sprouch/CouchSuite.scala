@@ -21,11 +21,15 @@ import ExecutionContext.Implicits.global
 class CouchSuite extends FunSuite with CouchSuiteHelpers {
   import JsonProtocol._
     
+  /*
+    The ssl-encryption flag is now obsolete; skip this test. 
+
   test("ssl enabled") {
     val conf = ConfigFactory.load()
     val sslEnabled = conf.getBoolean("spray.can.client.ssl-encryption")
     assert(sslEnabled, "ssl not enabled in config")
   }
+  */
   
   test("create, get, and delete db") {
     val dbName = "tempdb" + UUID.randomUUID.toString.toLowerCase
