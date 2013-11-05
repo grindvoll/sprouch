@@ -22,6 +22,7 @@ object ApplicationBuild extends Build {
         "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
     )),
     (testOptions in Test := Nil),
+    (parallelExecution in Test := false),
     (publishTo := Some(Resolver.file(
         "gh-pages",
         new File("/home/k/workspaces/sprouch-pages/repository/")

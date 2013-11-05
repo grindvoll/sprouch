@@ -32,15 +32,15 @@ class ViewsSuite extends FunSuite with CouchSuiteHelpers {
               }
             """)
         )
-        viewsDoc = new NewDocument("my views", Views(Map("sum" -> mr)))
+        viewsDoc = new NewDocument("my_views", Views(Map("sum" -> mr)))
         view = db.createViews(viewsDoc)
         
-        queryRes <- db.queryView[Null,Int]("my views", "sum")
-        groupedRes <- db.queryView[String,Int]("my views", "sum", flags = ViewQueryFlag(group = true))
-        keyRes <- db.queryView[Null,Int]("my views", "sum", key = Some("a"))
-        keysRes <- db.queryView[String,Int]("my views", "sum", keys = List("a", "c"))
-        rangeRes <- db.queryView[Null,Int]("my views", "sum", startKey = Some("b"), endKey = Some("c"))
-        groupedRes2 <- db.queryView[String,Int]("my views", "sum", groupLevel = Some(1))
+        queryRes <- db.queryView[Null,Int]("my_views", "sum")
+        groupedRes <- db.queryView[String,Int]("my_views", "sum", flags = ViewQueryFlag(group = true))
+        keyRes <- db.queryView[Null,Int]("my_views", "sum", key = Some("a"))
+        keysRes <- db.queryView[String,Int]("my_views", "sum", keys = List("a", "c"))
+        rangeRes <- db.queryView[Null,Int]("my_views", "sum", startKey = Some("b"), endKey = Some("c"))
+        groupedRes2 <- db.queryView[String,Int]("my_views", "sum", groupLevel = Some(1))
       } yield {
         assert(queryRes.rows.head.value === sum)
         val expectedGrouped = data.groupBy(_.bar).map { case (k,v) => ViewRow(k, v.map(_.foo).sum, None) }
@@ -69,12 +69,12 @@ class ViewsSuite extends FunSuite with CouchSuiteHelpers {
             """,
             reduce = None
         )
-        viewsDoc = new NewDocument("my views", Views(Map("map" -> mr)))
+        viewsDoc = new NewDocument("my_views", Views(Map("map" -> mr)))
         view <- db.createViews(viewsDoc)
-        queryRes <- db.queryView[String,Int]("my views", "map",
+        queryRes <- db.queryView[String,Int]("my_views", "map",
             flags = ViewQueryFlag(descending = true, include_docs = false, reduce = false, group=false),
             limit = Some(10))
-        withDocs <- db.queryView[String,Int]("my views", "map",
+        withDocs <- db.queryView[String,Int]("my_views", "map",
             flags = ViewQueryFlag(descending = true, include_docs = true, reduce = false, group=false),
             limit = Some(10))
         
@@ -102,9 +102,9 @@ class ViewsSuite extends FunSuite with CouchSuiteHelpers {
             """,
             reduce = None
         )
-        viewsDoc = new NewDocument("my views", Views(Map("map" -> mr)))
+        viewsDoc = new NewDocument("my_views", Views(Map("map" -> mr)))
         view <- db.createViews(viewsDoc)
-        queryRes <- db.queryView[(String,Int),Int]("my views", "map",
+        queryRes <- db.queryView[(String,Int),Int]("my_views", "map",
             flags = ViewQueryFlag(reduce = false, group=false), startKey = Some(("a" -> 0)), endKey = Some("c" -> 4))
       } yield {
         assert(queryRes.keys.toSet === data.map(d => d.bar -> d.foo).toSet)
